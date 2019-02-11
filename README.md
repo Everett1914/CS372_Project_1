@@ -18,6 +18,6 @@ To run the CLIENT execute the following commands:
  2. Run the client in a different terminal window on a different Oregonestate flip server.
  3. Client prompts user for hostname and sends to client for initialization message.
  4. Server returns server hostname to complete initialization message.
- 5. Client sends first chat message.  All messages have the senders hostname prepended from the source.
+ 5. Client sends first chat message.  All messages have the senders hostname prepended.
  6. Either client or server can stop the chat by executing \quit.  Server continues to accept connections.
  7. Server is closed by typing ctrl-c.
