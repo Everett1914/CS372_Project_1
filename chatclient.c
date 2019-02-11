@@ -1,10 +1,18 @@
 /*******************************************************************************
- * Developer:  Everett Williams
- * Last Modified:  040007FEB19
- * Program: chatclient.c
- * Assignment:  CS372 Project 1
- * Description:  Client implementation for a simple chat system.
- ******************************************************************************/
+* Developer:  Everett Williams
+* Last Modified:  101441FEB19 (Day/Time/Month/Year)
+* Program Name: chatclient.c
+* Assignment:  CS372 Project 1
+* Description:  Client implementation for a simple chat system using a TCP.
+* This program represents the client side coding.
+* client server architecture.
+* References:
+*   https://beej.us/guide/bgnet/
+*   https://beej.us/guide/bgnet/html/multi/advanced.html#sendall
+*   https://medium.com/@yashitmaheshwary/simple-chat-server-using-sockets-in-c-f72fc8b5b24e
+*   https://docs.python.org/2.7/library/socket.html?highlight=socket%20shutdown%20arguments
+*   https://www.geeksforgeeks.org/tcp-server-client-implementation-in-c/
+*******************************************************************************/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,6 +27,12 @@
 #define MAXHANDLESIZE 11 // max number of bytes we can store in the handle to include /0
 #define MAXMSGSIZE 501 // max number of bytes used in messages between host to include /0
 
+/*******************************************************************************
+* int createConnection(struct addrinfo * result)
+* Creates a socket and connection to the server.
+* Args: The address info linked list
+* Return: The socket file descriptor
+*******************************************************************************/
 int createConnection(struct addrinfo * result){
 	int sockfd;
 
@@ -36,7 +50,13 @@ int createConnection(struct addrinfo * result){
 	return sockfd;
 }
 
-void exchangeHandles(int sockfd, char *serverHandle, char *username){
+/*******************************************************************************
+* void establishConnection(int sockfd, char *serverHandle, char *username)
+* Establish initial connection to server and exchanges handles.
+* Args: The socket file descriptor, serverHandle, clientHandle(username)
+* Return: Nothing
+*******************************************************************************/
+void establishConnection(int sockfd, char *serverHandle, char *username){
   int numbytes;
   if ((numbytes = send(sockfd, username, strlen(username), 0)) == -1) {
       perror("send: ");
@@ -47,7 +67,7 @@ void exchangeHandles(int sockfd, char *serverHandle, char *username){
       exit(1);
   }
   serverHandle[numbytes] = '\0';  //append null terminator to end of whatever string is sent by server.  Assume server sends no more than 10 characters w/o /0.
-  printf("Server Handle> %s\n", serverHandle);
+  printf("Creating a connection with %s\n", serverHandle);
 }
 
 void chatControl(int sockfd, char *serverHandle, char *username){
@@ -73,7 +93,7 @@ void chatControl(int sockfd, char *serverHandle, char *username){
     msgSent[strlen(msgSent)] = ' ';
     strcat(msgSent, message);
 
-    if(strcmp(message, "/quit\n") == 0){
+    if(strcmp(message, "\\quit\n") == 0){
         close(sockfd);
         break;
     }
@@ -84,13 +104,13 @@ void chatControl(int sockfd, char *serverHandle, char *username){
     }
 
     //Manage recv and shutdown if socket closed by host https://beej.us/guide/bgnet/html/multi/recvman.html
-    numbytes = recv(sockfd, msgRecv, MAXMSGSIZE - 1, 0);
+    numbytes = recv(sockfd, msgRecv, MAXMSGSIZE + MAXHANDLESIZE + 2, 0);
     if (numbytes == -1) {
         perror("recv: ");
         exit(1);
     }
-    else if(numbytes == 0 || strcmp(msgRecv,"/quit") == 0){
-        printf("%s has closed the connection\n", serverHandle);
+    else if(numbytes == 0 || strcmp(msgRecv,"\\quit") == 0){
+        printf("%s closed the connection\n", serverHandle);
         break;
     }
     else{
@@ -118,7 +138,6 @@ int main(int argc, char *argv[]){
   if (len > 0 && username[len-1] == '\n'){
       username[--len] = '\0';
   }
-  //scanf("%s", username);
 
   //create pointer (result) to linked list containing address info
   memset(&hints, 0, sizeof hints);
@@ -131,7 +150,7 @@ int main(int argc, char *argv[]){
 
   //create connection
   sockfd = createConnection(result);
-  exchangeHandles(sockfd, serverHandle, username);
+  establishConnection(sockfd, serverHandle, username);
   chatControl(sockfd, serverHandle, username);
 
   return 0;

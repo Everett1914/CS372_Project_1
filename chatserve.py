@@ -1,8 +1,24 @@
-#server program
+
+#!/bin/python
+
+# Developer:  Everett Williams
+# Last Modified:  101441FEB19 (Day/Time/Month/Year)
+# Program Name: chatclient.c
+# Assignment:  CS372 Project 1
+# Description:  Client implementation for a simple chat system using a TCP.
+# This program represents the side side coding.
+# client server architecture.
+# References:
+#   https://beej.us/guide/bgnet/
+#   https://medium.com/@yashitmaheshwary/simple-chat-server-using-sockets-in-c-f72fc8b5b24e
+#   https://docs.python.org/2.7/library/socket.html?highlight=socket%20shutdown%20arguments
+#   https://www.geeksforgeeks.org/tcp-server-client-implementation-in-c/
+
+
 import socket
 import sys
 
-def exchangeHandles(connection, hostHandle):
+def establishConnection(connection, hostHandle):
     clientHandle = connection.recv(1024)
     connection.send(hostHandle)
     return clientHandle
@@ -21,18 +37,19 @@ if __name__ == "__main__":
     serverSocket.listen(1)
     while 1:
         connection, addr = serverSocket.accept()
-        clientHandle = exchangeHandles(connection, hostHandle);  #Get the client handle/send server handle
+        clientHandle = establishConnection(connection, hostHandle);  #Establish initial connection
         print 'Creating a connection with:', clientHandle
         while 1:
-           message = connection.recv(20480)
+           message = connection.recv(2048)
            if message == '':
-               print clientHandle,'closed connection'
+               print clientHandle,'closed the connection'
+               print '\n_____Server awaiting new connection_____'
                break
            message = message.decode()
            print message,
            print hostHandle + '>',
            message = raw_input()
-           if message == '/quit':
+           if message == '\\quit':
                connection.send(message.encode())
                print '\n_____Server awaiting new connection_____'
                break
