@@ -28,8 +28,8 @@
 #define MAXMSGSIZE 501 // max number of bytes used in messages between host to include /0
 
 /*******************************************************************************
-* int createConnection(struct addrinfo * result)
-* Creates a socket and connection to the server.
+* Name: int createConnection(struct addrinfo * result)
+* Desc: Creates a socket and connection to the server.
 * Args: The address info linked list
 * Return: The socket file descriptor
 *******************************************************************************/
@@ -51,8 +51,8 @@ int createConnection(struct addrinfo * result){
 }
 
 /*******************************************************************************
-* void establishConnection(int sockfd, char *serverHandle, char *username)
-* Establish initial connection to server and exchanges handles.
+* Name: void establishConnection(int sockfd, char *serverHandle, char *username)
+* Desc: Establish initial connection to server and exchanges handles.
 * Args: The socket file descriptor, serverHandle, clientHandle(username)
 * Return: Nothing
 *******************************************************************************/
@@ -70,6 +70,54 @@ void establishConnection(int sockfd, char *serverHandle, char *username){
   printf("Creating a connection with %s\n", serverHandle);
 }
 
+/*******************************************************************************
+* Name: void sendMsg(char *msgSent, int sockfd)
+* Desc: Send Messages using recv
+* Args: The socket file descriptor, pointer to msgSent
+* Return: Nothing
+* Reverence: https://beej.us/guide/bgnet/
+*******************************************************************************/
+void sendMsg(char *msgSent, int sockfd){
+  int numbytes;
+  if ((numbytes = send(sockfd, msgSent, strlen(msgSent), 0)) == -1) {
+      perror("send: ");
+      exit(1);
+  }
+}
+
+/*******************************************************************************
+* Name: int recvMsg(char *msgRecv, char *serverHandle, int sockfd)
+* Desc: Send Messages using recv
+* Args: The socket file descriptor, ptr to msgRecv, ptr to serverHandle
+* Return: 1 or 0 represnting whether or not to close the socket
+* Reverence: https://beej.us/guide/bgnet/
+*******************************************************************************/
+int recvMsg(char *msgRecv, char *serverHandle, int sockfd){
+  int numbytes;
+  numbytes = recv(sockfd, msgRecv, MAXMSGSIZE + MAXHANDLESIZE + 2, 0);
+  if (numbytes == -1) {
+      perror("recv: ");
+      exit(1);
+  }
+  else if(numbytes == 0 || strcmp(msgRecv,"\\quit") == 0){
+      printf("%s closed the connection\n", serverHandle);
+      return 1;
+  }
+  else{
+      msgRecv[numbytes] = '\0';
+      printf("%s\n", msgRecv);
+  }
+  return 0;
+}
+
+/*******************************************************************************
+* Name: void chatControl(int sockfd, char *serverHandle, char *username)
+* Desc: Controls chat logic
+* Dependency:  recvMsg() and sendMsg()
+* Args: The socket file descriptor, ptr to username, ptr to serverHandle
+* Return: None
+* Reverence: https://beej.us/guide/bgnet/
+*******************************************************************************/
 void chatControl(int sockfd, char *serverHandle, char *username){
   while (1){
     int numbytes, len;
@@ -98,24 +146,10 @@ void chatControl(int sockfd, char *serverHandle, char *username){
         break;
     }
 
-    if ((numbytes = send(sockfd, msgSent, strlen(msgSent), 0)) == -1) {
-        perror("send: ");
-        exit(1);
-    }
+    sendMsg(msgSent, sockfd);
 
-    //Manage recv and shutdown if socket closed by host https://beej.us/guide/bgnet/html/multi/recvman.html
-    numbytes = recv(sockfd, msgRecv, MAXMSGSIZE + MAXHANDLESIZE + 2, 0);
-    if (numbytes == -1) {
-        perror("recv: ");
-        exit(1);
-    }
-    else if(numbytes == 0 || strcmp(msgRecv,"\\quit") == 0){
-        printf("%s closed the connection\n", serverHandle);
-        break;
-    }
-    else{
-        msgRecv[numbytes] = '\0';
-        printf("%s\n", msgRecv);
+    if(recvMsg(msgRecv, serverHandle, sockfd) == 1){
+      break;
     }
   }
   close(sockfd);
