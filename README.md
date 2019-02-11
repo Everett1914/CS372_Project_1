@@ -4,7 +4,7 @@
 To run the SERVER execute the following command:
     1. python chatserve.py <PORTNUM>
     2. python chatserve.py 58058  (Example)
-    Server was tested on flip3
+    Server was tested on flip3 with python 2.7.5
 
 # Client
 To run the CLIENT execute the following commands:
