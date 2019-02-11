@@ -2,13 +2,13 @@
  CS372_Project_1
 
 #Server
- To run the SERVER execute the following command:
+#To run the SERVER execute the following command:
     python chatserve.py <PORTNUM>
     python chatserve.py 58058  (Example)
     Server was tested on flip3
 
 #Client
- To run the CLIENT execute the following commands:
+#To run the CLIENT execute the following commands:
     gcc -o chatclient chatclient.c  (Compliles the program)
     ./chatclient <HOSTNAME> <PORTNUM>  (Executes the program)
     ./chatclient flip3.engr.oregonstate.edu 58058  (Example)
